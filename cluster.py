@@ -147,4 +147,6 @@ if __name__ == "__main__":
     backfill_time = simulate_backfill(clone_jobs(), total_nodes)
 
     print("\n=== SUMMARY ===")
+    print(f"Total nodes: {total_nodes}")
+    print(f"Number of jobs: {len(base_jobs)}")
     print(f"FIFO:{fifo_time} PRIORITY:{prio_time} BACKFILL:{backfill_time}")
