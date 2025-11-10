@@ -3,8 +3,11 @@ from collections import deque
 
 
 class Job:
-    """Job"""
+    """Представление задачи с требуемыми ресурсами и приоритетом."""
     def __init__(self, name, duration, nodes_required, priority=0):
+        """Сохраняет параметры задачи и
+        фиксирует оставшееся время выполнения.
+        """
         self.name = name
         self.duration = duration
         self.nodes_required = nodes_required
@@ -12,27 +15,35 @@ class Job:
         self.remaining = duration
 
     def __repr__(self):
-        return f"{self.name}(dur={self.duration},nodes={self.nodes_required},pri={self.priority})"
+        return (f"{self.name}(dur={self.duration},nodes={self.nodes_required},"
+                f"pri={self.priority})")
 
 
 class Cluster:
-    """Cluster"""
+    """Управляет состоянием кластера и выполняющимися задачами."""
     def __init__(self, total_nodes):
+        """Запоминает общее число узлов и инициализирует счётчики."""
         self.total_nodes = total_nodes
         self.available = total_nodes
         self.running = []
 
     def can_run(self, job):
-        """Fit"""
+        """Проверяет, достаточно ли свободных узлов
+        для запуска указанной задачи.
+        """
         return self.available >= job.nodes_required
 
     def start(self, job):
-        """Start"""
+        """Запускает задачу, резервируя нужные узлы и
+        добавляя её в список выполняемых.
+        """
         self.available -= job.nodes_required
         self.running.append(job)
 
     def tick(self):
-        """Tick"""
+        """Продвигает симуляцию на один шаг и освобождает
+        узлы завершённых задач.
+        """
         finished = []
         for job in list(self.running):
             job.remaining -= 1
@@ -44,7 +55,7 @@ class Cluster:
 
 
 def simulate_fifo(jobs, total_nodes):
-    """FIFO"""
+    """Имитация планирования FIFO: задачи стартуют в порядке поступления."""
     queue = deque(jobs)
     cluster = Cluster(total_nodes)
     time = 0
@@ -70,7 +81,10 @@ def simulate_fifo(jobs, total_nodes):
 
 
 def simulate_priority(jobs, total_nodes):
-    """Priority"""
+    """
+    Имитация планирования по приоритету: чем выше priority,
+    тем раньше старт.
+    """
     cluster = Cluster(total_nodes)
     waiting = [(-job.priority, idx, job) for idx, job in enumerate(jobs)]
     heapq.heapify(waiting)
@@ -99,7 +113,9 @@ def simulate_priority(jobs, total_nodes):
 
 
 def simulate_backfill(jobs, total_nodes):
-    """Backfill"""
+    """Имитация backfill: основная очередь
+    плюс заполнение окон короткими задачами.
+    """
     queue = deque(jobs)
     cluster = Cluster(total_nodes)
     time = 0
@@ -139,12 +155,18 @@ if __name__ == "__main__":
     total_nodes = 5
 
     def clone_jobs():
-        """Clone"""
-        return [Job(job.name, job.duration, job.nodes_required, job.priority) for job in base_jobs]
+        """Возвращает копии исходных задач,
+        чтобы симуляции не влияли друг на друга.
+        """
+        return [Job(job.name,
+                    job.duration,
+                    job.nodes_required,
+                    job.priority) for job in base_jobs]
 
     fifo_time = simulate_fifo(clone_jobs(), total_nodes)
     prio_time = simulate_priority(clone_jobs(), total_nodes)
     backfill_time = simulate_backfill(clone_jobs(), total_nodes)
+
 
     print("\n=== SUMMARY ===")
     print(f"Total nodes: {total_nodes}")
